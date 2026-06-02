@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Wildlife Experience - Zoolingo Interactivo Premium</title>
+    <style>
+
+:root {
+    --bg-primary: #050814;
+    --bg-secondary: #0c1224;
+    --bg-glass: rgba(15, 22, 45, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --accent: #7cf7d4;
+    --accent-2: #7aa8ff;
+    --accent-3: #ffb86b;
+    --text-primary: #f5fbff;
+    --text-secondary: rgba(245, 251, 255, 0.75);
+    --shadow-strong: 0 24px 80px rgba(0, 0, 0, 0.45);
+    --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.25);
+    --radius-xl: 32px;
+    --radius-lg: 24px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--text-primary);
+    background:
+        radial-gradient(circle at 20% 20%, rgba(124, 247, 212, 0.14), transparent 25%),
+        radial-gradient(circle at 80% 10%, rgba(122, 168, 255, 0.13), transparent 22%),
+        linear-gradient(180deg, #050814 0%, #09101f 50%, #0d162d 100%);
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(circle at center, black 25%, transparent 85%);
+    pointer-events: none;
+    opacity: 0.35;
+}
+
+#sky-container, #particles-container, #clouds-container, #stars-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+#sun-moon {
+    position: fixed;
+    top: 8vh;
+    right: 12vw;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff7c2 0%, #ffd86b 35%, rgba(255, 216, 107, 0.15) 70%, transparent 72%);
+    box-shadow: 0 0 60px rgba(255, 216, 107, 0.6), 0 0 140px rgba(255, 216, 107, 0.2);
+    animation: floatCelestial 14s ease-in-out infinite;
+    filter: blur(0.2px);
+}
+
+body.night #sun-moon {
+    background: radial-gradient(circle, #f5fbff 0%, #dcecff 36%, rgba(220, 236, 255, 0.15) 70%, transparent 72%);
+    box-shadow: 0 0 50px rgba(220, 236, 255, 0.55), 0 0 120px rgba(220, 236, 255, 0.14);
+}
+
+@keyframes floatCelestial {
+    0%,100% { transform: translateY(0px) translateX(0px) scale(1); }
+    50% { transform: translateY(18px) translateX(-10px) scale(1.05); }
+}
+
+#main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 18px 24px;
+    backdrop-filter: blur(24px);
+    background: linear-gradient(180deg, rgba(5, 8, 20, 0.92), rgba(5, 8, 20, 0.42));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.header-content, .nav-content, .search-filters, .map-container, .explore-container, .collection-container, .achievements-container {
+    width: min(1440px, calc(100% - 32px));
+    margin: 0 auto;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.logo { display: flex; align-items: center; gap: 14px; }
+.logo-icon {
+    width: 54px; height: 54px; border-radius: 18px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(124,247,212,0.22), rgba(122,168,255,0.22));
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: var(--shadow-soft);
+    font-size: 1.4rem;
+}
+.logo-text h1, .section-title, .modal-common-name, .habitat-name { font-family: 'Orbitron', sans-serif; }
+.logo-text h1 { margin: 0; font-size: 1.05rem; letter-spacing: 0.08em; }
+.logo-text span { color: var(--text-secondary); font-size: 0.85rem; letter-spacing: 0.18em; }
+
+.header-stats, .header-controls, .filters-container { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.stat-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-width: 86px; padding: 10px 14px; border-radius: 16px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(18px);
+}
+.stat-icon { font-size: 0.9rem; }
+.stat-value { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: var(--accent); }
+.stat-label { font-size: 0.72rem; color: var(--text-secondary); }
+
+.control-btn, .nav-btn, .btn-primary, .btn-secondary, .modal-close, .modal-favorite {
+    border: 0; cursor: pointer; color: var(--text-primary);
+    transition: transform .25s ease, background .25s ease, box-shadow .25s ease, opacity .25s ease;
+}
+.control-btn {
+    width: 46px; height: 46px; border-radius: 16px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(18px);
+}
+.control-btn:hover, .nav-btn:hover, .btn-primary:hover, .btn-secondary:hover, .modal-close:hover, .modal-favorite:hover { transform: translateY(-2px) scale(1.01); }
+
+#main-nav {
+    position: fixed;
+    top: 112px;
+    left: 0;
+    right: 0;
+    z-index: 90;
+}
+.nav-content {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    padding: 0 24px;
+}
+.nav-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px; border-radius: 999px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(18px);
+}
+.nav-btn.active { background: linear-gradient(135deg, rgba(124,247,212,0.18), rgba(122,168,255,0.18)); box-shadow: 0 0 0 1px rgba(124,247,212,0.15), var(--shadow-soft); }
+
+#search-filters {
+    position: fixed;
+    top: 176px;
+    left: 0;
+    right: 0;
+    z-index: 80;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    padding: 0 24px;
+    flex-wrap: wrap;
+}
+.search-container {
+    position: relative; width: min(520px, 100%);
+}
+.search-input, .filter-select {
+    width: 100%;
+    padding: 14px 16px 14px 46px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(18px);
+    color: var(--text-primary);
+    outline: none;
+    box-shadow: var(--shadow-soft);
+}
+.search-input::placeholder { color: rgba(245,251,255,0.42); }
+.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); opacity: .7; }
+.filter-select { min-width: 200px; padding-left: 16px; }
+
+#main-content { padding-top: 260px; padding-bottom: 80px; }
+.view { display: none; animation: fadeUp .55s ease both; }
+.view.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+.section-title { font-size: clamp(1.5rem, 2.4vw, 2.6rem); margin: 0 0 8px; }
+.section-subtitle { margin: 0 0 24px; color: var(--text-secondary); }
+
+.habitat-grid, .animals-grid, .collection-grid, .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+.card, .habitat-card, .animal-card, .achievement-card, .info-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: var(--shadow-strong);
+    backdrop-filter: blur(20px);
+}
+.habitat-card, .animal-card, .achievement-card {
+    min-height: 250px;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform .35s ease, box-shadow .35s ease;
+}
+.habitat-card:hover, .animal-card:hover, .achievement-card:hover { transform: translateY(-8px) scale(1.01); }
+.card-glow::before {
+    content: '';
+    position: absolute;
+    inset: -40%;
+    background: radial-gradient(circle, rgba(124,247,212,0.18), transparent 55%);
+    opacity: 0;
+    transition: opacity .3s ease;
+}
+.card:hover .card-glow::before { opacity: 1; }
+
+.habitat-visual {
+    height: 154px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.habitat-visual::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(5,8,20,0.55) 100%);
+}
+.habitat-info-box, .animal-info-box, .achievement-info-box {
+    padding: 16px;
+}
+.habitat-title, .animal-name { margin: 0 0 6px; font-size: 1.08rem; font-family: 'Orbitron', sans-serif; }
+.small-text, .animal-meta, .achievement-desc { color: var(--text-secondary); font-size: 0.92rem; }
+.progress-pill {
+    position: absolute; top: 14px; right: 14px; z-index: 2;
+    padding: 8px 12px; border-radius: 999px; font-size: .78rem;
+    background: rgba(0,0,0,0.35); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
+.animal-art {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    font-size: 4.8rem;
+    filter: drop-shadow(0 12px 18px rgba(0,0,0,0.35));
+}
+
+.rabbit { animation: rabbitBounce 2.5s ease-in-out infinite; }
+@keyframes rabbitBounce { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+.owl { animation: owlBlink 4s infinite; }
+@keyframes owlBlink { 0%,90%,100% { transform: rotate(0deg) } 45% { transform: rotate(6deg) } }
+.seal { animation: sealSwim 3s ease-in-out infinite; }
+@keyframes sealSwim { 0%,100% { transform: translateX(0) } 50% { transform: translateX(10px) } }
+.chicken { animation: chickenPeck 1.8s infinite; }
+@keyframes chickenPeck { 0%,100% { transform: translateY(0) rotate(0deg) } 50% { transform: translateY(4px) rotate(-5deg) } }
+.raccoon { animation: raccoonTail 2.8s ease-in-out infinite; }
+@keyframes raccoonTail { 0%,100% { transform: translateX(0) rotate(0deg) } 50% { transform: translateX(8px) rotate(4deg) } }
+.opossum { animation: opossumSlow 4s ease-in-out infinite; }
+@keyframes opossumSlow { 0%,100% { transform: scale(1) } 50% { transform: scale(1.03) } }
+.snake { animation: snakeWave 2s ease-in-out infinite; }
+@keyframes snakeWave { 0%,100% { transform: translateX(0) skewX(0deg) } 50% { transform: translateX(10px) skewX(6deg) } }
+.panda { animation: pandaEat 3s ease-in-out infinite; }
+@keyframes pandaEat { 0%,100% { transform: rotate(0deg) } 50% { transform: rotate(-4deg) scale(1.03) } }
+.koala { animation: koalaSleep 4.5s ease-in-out infinite; }
+@keyframes koalaSleep { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+.elephant { animation: elephantWalk 4s ease-in-out infinite; }
+@keyframes elephantWalk { 0%,100% { transform: translateX(0) } 50% { transform: translateX(8px) } }
+
+.modal {
+    position: fixed; inset: 0; z-index: 200;
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+}
+.modal.active { display: flex; }
+.modal-overlay {
+    position: absolute; inset: 0;
+    background: rgba(2, 5, 14, 0.72);
+    backdrop-filter: blur(18px);
+}
+.modal-content {
+    position: relative; z-index: 2;
+    width: min(980px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+    border-radius: 36px;
+    background: linear-gradient(180deg, rgba(15, 22, 45, 0.95), rgba(9, 14, 29, 0.96));
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 28px 100px rgba(0,0,0,0.55);
+    animation: modalIn .35s ease both;
+}
+@keyframes modalIn { from { opacity:0; transform: scale(0.95) translateY(22px)} to { opacity:1; transform: scale(1) translateY(0)} }
+.modal-header, .modal-footer, .habitat-info {
+    padding: 22px 24px;
+}
+.modal-header {
+    display: flex; align-items: center; gap: 18px; justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.modal-animal-icon { font-size: 4rem; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.35)); }
+.modal-title-group { flex: 1; }
+.modal-common-name { margin: 0; font-size: 1.8rem; }
+.modal-scientific-name { margin: 6px 0 0; color: var(--accent); font-style: italic; }
+.modal-favorite, .modal-close {
+    width: 44px; height: 44px; border-radius: 14px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08);
+}
+.modal-close { position: absolute; top: 18px; right: 18px; z-index: 3; }
+.modal-body { padding: 0 24px 24px; }
+.modal-info-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px;
+}
+.info-card { padding: 16px; min-height: auto; }
+.full-width { grid-column: 1 / -1; }
+.info-label { display:block; color: var(--text-secondary); font-size: .83rem; margin-bottom: 8px; }
+.info-value { font-family: 'Orbitron', sans-serif; font-size: .92rem; line-height: 1.45; }
+.modal-trivia, .modal-animation-preview { margin-top: 18px; }
+.trivia-title, .preview-title { margin: 0 0 12px; font-family: 'Orbitron', sans-serif; }
+.trivia-list { margin: 0; padding-left: 18px; color: var(--text-secondary); }
+.animation-preview-container {
+    min-height: 160px; border-radius: 24px; display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(124,247,212,0.08), rgba(122,168,255,0.08));
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.habitat-modal-content { width: min(1100px, 100%); }
+.habitat-hero { position: relative; height: 380px; overflow: hidden; border-radius: 36px 36px 0 0; }
+.habitat-background { position: absolute; inset: 0; }
+.habitat-animals-container { position: absolute; inset: 0; display: grid; place-items: center; }
+.habitat-info { border-top: 1px solid rgba(255,255,255,0.08); }
+.habitat-stats { display: flex; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+.habitat-stat {
+    flex: 1; min-width: 180px; padding: 16px; border-radius: 20px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+}
+.stat-number { display: block; font-family: 'Orbitron', sans-serif; font-size: 1.6rem; color: var(--accent); }
+.stat-text { color: var(--text-secondary); }
+
+#notifications-container {
+    position: fixed; bottom: 24px; right: 24px; z-index: 400;
+    display: flex; flex-direction: column; gap: 12px;
+}
+.notification {
+    padding: 14px 16px; border-radius: 16px; min-width: 220px;
+    background: rgba(12, 18, 36, 0.88); border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: var(--shadow-strong); animation: popIn .3s ease both;
+}
+@keyframes popIn { from { opacity: 0; transform: translateX(20px)} to { opacity: 1; transform: translateX(0)} }
+
+.particle, .cloud, .star, .leaf, .snowflake, .sand, .butterfly, .firefly {
+    position: absolute;
+    pointer-events: none;
+}
+
+#loading-screen {
+    position: fixed; inset: 0; z-index: 1000;
+    display: grid; place-items: center;
+    background: radial-gradient(circle at center, rgba(20,30,60,0.96), rgba(5,8,20,0.99));
+}
+.loading-content { text-align: center; width: min(520px, 90vw); }
+.loading-logo h1 { font-family: 'Orbitron', sans-serif; letter-spacing: .08em; }
+.loading-bar {
+    height: 10px; border-radius: 999px; overflow: hidden; margin: 24px 0 12px;
+    background: rgba(255,255,255,0.08);
+}
+.loading-progress {
+    height: 100%; width: 0%; border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+    animation: load 2.2s ease forwards;
+}
+@keyframes load { to { width: 100%; } }
+
+.btn-primary, .btn-secondary {
+    padding: 14px 18px; border-radius: 16px; font-weight: 700; letter-spacing: .04em;
+}
+.btn-primary { background: linear-gradient(135deg, rgba(124,247,212,0.24), rgba(122,168,255,0.24)); }
+.btn-secondary { background: rgba(255,255,255,0.06); }
+
+@media (max-width: 900px) {
+    #main-header { padding: 14px 16px; }
+    .header-content { flex-direction: column; align-items: stretch; }
+    #main-nav { top: 170px; }
+    #search-filters { top: 240px; }
+    #main-content { padding-top: 340px; }
+}
+
+@media (max-width: 640px) {
+    .stat-item { min-width: 76px; }
+    .nav-btn { padding: 12px 16px; }
+    .modal-content, .habitat-modal-content { border-radius: 24px; }
+    .habitat-hero { height: 300px; }
+}
+
+</style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Particulas Ambientales -->
+    <div id="particles-container"></div>
+
+    <!-- Ciclo Día/Noche -->
+    <div id="sky-container">
+        <div id="sun-moon"></div>
+        <div id="clouds-container"></div>
+        <div id="stars-container"></div>
+    </div>
+
+    <!-- Pantalla de Carga -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <div class="animal-icon">🦁</div>
+                <h1>Virtual Wildlife Experience</h1>
+            </div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Cargando experiencia inmersiva...</p>
+        </div>
+    </div>
+
+    <!-- Header Principal -->
+    <header id="main-header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🌿</div>
+                <div class="logo-text">
+                    <h1>Virtual Wildlife</h1>
+                    <span>Experience</span>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">🔍</span>
+                    <span class="stat-value" id="discovered-count">0</span>
+                    <span class="stat-label">Especies</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⭐</span>
+                    <span class="stat-value" id="favorites-count">0</span>
+                    <span class="stat-label">Favoritos</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🏆</span>
+                    <span class="stat-value" id="achievements-count">0</span>
+                    <span class="stat-label">Logros</span>
+                </div>
+            </div>
+            <div class="header-controls">
+                <button id="sound-toggle" class="control-btn" title="Sonido">
+                    <span class="btn-icon">🔊</span>
+                </button>
+                <button id="music-toggle" class="control-btn" title="Musica">
+                    <span class="btn-icon">🎵</span>
+                </button>
+                <button id="fullscreen-toggle" class="control-btn" title="Pantalla Completa">
+                    <span class="btn-icon">⛶</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra de Navegacion Principal -->
+    <nav id="main-nav">
+        <div class="nav-content">
+            <button class="nav-btn active" data-view="map">
+                <span class="nav-icon">🗺️</span>
+                <span class="nav-text">Mapa</span>
+            </button>
+            <button class="nav-btn" data-view="explore">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-text">Explorar</span>
+            </button>
+            <button class="nav-btn" data-view="collection">
+                <span class="nav-icon">📚</span>
+                <span class="nav-text">Coleccion</span>
+            </button>
+            <button class="nav-btn" data-view="achievements">
+                <span class="nav-icon">🏆</span>
+                <span class="nav-text">Logros</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Buscador y Filtros -->
+    <div id="search-filters">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar animal..." class="search-input">
+            <span class="search-icon">🔍</span>
+        </div>
+        <div class="filters-container">
+            <select id="habitat-filter" class="filter-select">
+                <option value="all">Todos los Habitats</option>
+                <option value="pradera">Pradera</option>
+                <option value="bosque-nocturno">Bosque Nocturno</option>
+                <option value="polar">Polar</option>
+                <option value="granja">Granja</option>
+                <option value="bosque-templado">Bosque Templado</option>
+                <option value="mexicano">Mexicano</option>
+                <option value="desierto">Desierto</option>
+                <option value="bambu">Bambu</option>
+                <option value="australiano">Australiano</option>
+                <option value="sabana">Sabana</option>
+            </select>
+            <select id="diet-filter" class="filter-select">
+                <option value="all">Todas las Dietas</option>
+                <option value="herbivoro">Herbivoro</option>
+                <option value="carnivoro">Carnivoro</option>
+                <option value="omnivoro">Omnivoro</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal -->
+    <main id="main-content">
+        <!-- Vista Mapa -->
+        <section id="map-view" class="view active">
+            <div class="map-container">
+                <h2 class="section-title">Mapa del Zologico</h2>
+                <p class="section-subtitle">Explora los 11 habitats unici y descubre la vida salvaje</p>
+                <div class="habitat-grid" id="habitat-grid">
+                    <!-- Habitats se generan con JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Vista Explorar -->
+        <section id="explore-view" class="view">
+            <div class="explore-container">
+                <h2 class="section-title">Explorar Especies</h2>
+                <p class="section-subtitle">Descubre cada animal en su habitat natural</p>
+                <div class="animals-grid" id="animals-grid">
+                    <!-- Animales se generan con JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Vista Coleccion -->
+        <section id="collection-view" class="view">
+            <div class="collection-container">
+                <h2 class="section-title">Mi Coleccion</h2>
+                <p class="section-subtitle">Especies descubiertas: <span id="collection-count">0</span> de 11</p>
+                <div class="collection-grid" id="collection-grid">
+                    <!-- Coleccion se genera con JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Vista Logros -->
+        <section id="achievements-view" class="view">
+            <div class="achievements-container">
+                <h2 class="section-title">Logros de Exploracion</h2>
+                <p class="section-subtitle">Desbloquea logros explorando el zologico</p>
+                <div class="achievements-grid" id="achievements-grid">
+                    <!-- Logros se generan con JS -->
+                </div>
+            </div>
+        </section>
+    </main>
+    <div id="self-contained-note" style="position:fixed;left:16px;bottom:16px;z-index:150;max-width:340px;padding:12px 14px;border-radius:16px;background:rgba(8,12,24,.78);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(18px);color:rgba(255,255,255,.82);font-size:.9rem;line-height:1.4;box-shadow:0 18px 60px rgba(0,0,0,.35)">
+        Archivo único: abre este HTML directamente en tu navegador.
+    </div>
+
+
+    <!-- Modal de Informacion del Animal -->
+    <div id="animal-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">✕</button>
+            <div class="modal-header">
+                <div class="modal-animal-icon" id="modal-icon">🦁</div>
+                <div class="modal-title-group">
+                    <h2 class="modal-common-name" id="modal-common">Nombre Comun</h2>
+                    <p class="modal-scientific-name" id="modal-scientific">Nombre Cientifico</p>
+                </div>
+                <button class="modal-favorite" id="modal-favorite">
+                    <span class="favorite-icon">☆</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-info-grid">
+                    <div class="info-card">
+                        <span class="info-label">🍽️ Alimentacion</span>
+                        <span class="info-value" id="modal-diet">Herbivoro</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">🏠 Habitat Natural</span>
+                        <span class="info-value" id="modal-habitat">Bosque</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">⏰ Esperanza de Vida</span>
+                        <span class="info-value" id="modal-lifespan">10-15 anos</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">⚖️ Peso Promedio</span>
+                        <span class="info-value" id="modal-weight">5-8 kg</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">📏 Tamaño Promedio</span>
+                        <span class="info-value" id="modal-size">40-60 cm</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">🛡️ Estado Conservacion</span>
+                        <span class="info-value" id="modal-status">Preocupacion Menor</span>
+                    </div>
+                    <div class="info-card full-width">
+                        <span class="info-label">🌍 Distribucion Geografica</span>
+                        <span class="info-value" id="modal-distribution">AmERICA del Norte y Sur</span>
+                    </div>
+                </div>
+                <div class="modal-trivia">
+                    <h3 class="trivia-title">💡 Datos Curiosos</h3>
+                    <ul class="trivia-list" id="modal-trivia">
+                        <!-- Datos curiosos se generan con JS -->
+                    </ul>
+                </div>
+                <div class="modal-animation-preview">
+                    <h3 class="preview-title">🎬 Animacion Exclusiva</h3>
+                    <div class="animation-preview-container" id="animation-preview">
+                        <!-- Animacion se muestra aqui -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="explore-habitat-btn">Explorar Habitat</button>
+                <button class="btn-secondary" id="next-animal-btn">Siguiente Animal →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Habitat -->
+    <div id="habitat-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content habitat-modal-content">
+            <button class="modal-close" id="habitat-modal-close">✕</button>
+            <div class="habitat-hero">
+                <div class="habitat-background" id="habitat-background"></div>
+                <div class="habitat-animals-container" id="habitat-animals-container">
+                    <!-- Animales del habitat se muestran aqui -->
+                </div>
+            </div>
+            <div class="habitat-info">
+                <h2 class="habitat-name" id="habitat-name">Nombre del Habitat</h2>
+                <p class="habitat-description" id="habitat-description">Descripcion del habitat</p>
+                <div class="habitat-stats">
+                    <div class="habitat-stat">
+                        <span class="stat-number" id="habitat-animal-count">0</span>
+                        <span class="stat-text">Especies</span>
+                    </div>
+                    <div class="habitat-stat">
+                        <span class="stat-number" id="habitat-discovered">0</span>
+                        <span class="stat-text">Descubiertas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificaciones -->
+    <div id="notifications-container"></div>
+
+    <!-- Audio Elements -->
+    <audio id="ambient-audio" loop></audio>
+    <audio id="music-audio" loop></audio>
+    <audio id="click-sound"></audio>
+
+    <script>
+
+const animals = [
+    {id:'rabbit', common:'Conejo', scientific:'Oryctolagus cuniculus', diet:'herbivoro', habitat:'pradera', habitatName:'Pradera verde', lifespan:'8-12 anos', weight:'1.2-2.5 kg', size:'35-50 cm', status:'Preocupacion Menor', distribution:'Europa, Africa del Norte y regiones introducidas', trivia:['Sus patas traseras le permiten realizar saltos rapidos y precisos.', 'Sus orejas ayudan a regular la temperatura corporal.', 'Pueden girar la cabeza casi 360 grados para detectar depredadores.'], icon:'🐇', animation:'rabbit', discovered:false, favorite:false},
+    {id:'owl', common:'Buho', scientific:'Bubo bubo', diet:'carnivoro', habitat:'bosque-nocturno', habitatName:'Bosque nocturno', lifespan:'10-20 anos', weight:'2-4.5 kg', size:'60-75 cm', status:'Preocupacion Menor', distribution:'Europa, Asia y norte de Africa', trivia:['Sus ojos no se mueven en las orbitas, por eso gira la cabeza.', 'Su vuelo es silencioso gracias a las plumas especializadas.', 'Puede localizar presas en total oscuridad.',], icon:'🦉', animation:'owl', discovered:false, favorite:false},
+    {id:'seal', common:'Foca', scientific:'Phoca vitulina', diet:'carnivoro', habitat:'polar', habitatName:'Region polar', lifespan:'25-35 anos', weight:'55-170 kg', size:'1.2-1.9 m', status:'Preocupacion Menor', distribution:'Costas del Atlantico y Pacifico Norte, regiones subpolares', trivia:['Las focas tienen una gruesa capa de grasa para aislarse del frio.', 'Pueden dormir flotando en el agua.', 'Sus bigotes detectan movimientos de peces bajo el agua.'], icon:'🦭', animation:'seal', discovered:false, favorite:false},
+    {id:'chicken', common:'Gallina', scientific:'Gallus gallus domesticus', diet:'omnivoro', habitat:'granja', habitatName:'Granja tradicional', lifespan:'5-10 anos', weight:'2-4 kg', size:'40-50 cm', status:'Domestico', distribution:'Mundial', trivia:['Desciende del gallo bankiva del sudeste asiatico.', 'Pueden reconocer decenas de individuos dentro de su grupo.', 'Usan vocalizaciones distintas para avisar sobre alimentos o peligros.'], icon:'🐔', animation:'chicken', discovered:false, favorite:false},
+    {id:'raccoon', common:'Mapache', scientific:'Procyon lotor', diet:'omnivoro', habitat:'bosque-templado', habitatName:'Bosque templado', lifespan:'2-5 anos en naturaleza', weight:'5-12 kg', size:'40-70 cm', status:'Preocupacion Menor', distribution:'America del Norte y Central', trivia:['Sus patas delanteras son muy sensibles y les ayudan a manipular objetos.', 'Son excelentes trepadores y nadadores.', 'Su mascara facial reduce el brillo y puede ayudar a ver mejor de noche.'], icon:'🦝', animation:'raccoon', discovered:false, favorite:false},
+    {id:'opossum', common:'Tlacuache', scientific:'Didelphis virginiana', diet:'omnivoro', habitat:'mexicano', habitatName:'Ecosistema mexicano nocturno', lifespan:'2-4 anos', weight:'1.5-6 kg', size:'35-95 cm', status:'Preocupacion Menor', distribution:'America del Norte, Centro y partes de Sudamerica', trivia:['Es uno de los pocos marsupiales de America.', 'Puede usar su cola prensil para equilibrarse.', 'Tiene gran resistencia a venenos de algunas serpientes.'], icon:'🦥', animation:'opossum', discovered:false, favorite:false},
+    {id:'snake', common:'Serpiente', scientific:'Python regius', diet:'carnivoro', habitat:'desierto', habitatName:'Desierto', lifespan:'20-30 anos', weight:'1-3.5 kg', size:'90-150 cm', status:'Preocupacion Menor', distribution:'Africa occidental y central', trivia:['Las serpientes no tienen parpados moviles.', 'Detectan vibraciones del suelo con gran precision.', 'Pueden tragar presas mucho mayores que su cabeza.'], icon:'🐍', animation:'snake', discovered:false, favorite:false},
+    {id:'panda', common:'Oso panda', scientific:'Ailuropoda melanoleuca', diet:'herbivoro', habitat:'bambu', habitatName:'Bosque de bambu', lifespan:'20 anos en naturaleza, hasta 30 en cautiverio', weight:'70-120 kg', size:'1.2-1.9 m', status:'Vulnerable', distribution:'China central', trivia:['Su pulgar falso les ayuda a sujetar el bambu.', 'Pasan muchas horas alimentandose diariamente.', 'Aunque son osos, su dieta es casi totalmente vegetal.'], icon:'🐼', animation:'panda', discovered:false, favorite:false},
+    {id:'koala', common:'Koala', scientific:'Phascolarctos cinereus', diet:'herbivoro', habitat:'australiano', habitatName:'Bosque australiano', lifespan:'13-18 anos', weight:'4-15 kg', size:'60-85 cm', status:'Vulnerable', distribution:'Australia oriental y meridional', trivia:['Duermen muchas horas al dia por su dieta de baja energia.', 'Sus huellas pueden parecer casi identicas a las de humanos.', 'Tienen huellas dactilares muy similares a las nuestras.'], icon:'🐨', animation:'koala', discovered:false, favorite:false},
+    {id:'elephant', common:'Elefante', scientific:'Loxodonta africana', diet:'herbivoro', habitat:'sabana', habitatName:'Sabana africana', lifespan:'60-70 anos', weight:'2700-6000 kg', size:'2.5-4 m', status:'Vulnerable', distribution:'Africa subsahariana', trivia:['La trompa tiene miles de musculos individuales.', 'Sus orejas ayudan a regular la temperatura corporal.', 'Pueden recorrer grandes distancias en busca de agua y alimento.'], icon:'🐘', animation:'elephant', discovered:false, favorite:false}
+];
+
+const habitats = [
+    {id:'pradera', name:'Pradera verde', desc:'Flores animadas, madrigueras y mariposas en un entorno luminoso.', color:'linear-gradient(180deg, #7cf7d4, #72c96e 45%, #3c8c44 100%)', ambient:'pradera'},
+    {id:'bosque-nocturno', name:'Bosque nocturno', desc:'Luna dinamica, luciernagas y arboles altos bajo un cielo profundo.', color:'linear-gradient(180deg, #0f1638, #18224d 50%, #060913 100%)', ambient:'night'},
+    {id:'polar', name:'Region polar', desc:'Hielo flotante, agua animada y nieve suspendida en el aire.', color:'linear-gradient(180deg, #d5f7ff, #7ecbff 50%, #2c5fa2 100%)', ambient:'polar'},
+    {id:'granja', name:'Granja tradicional', desc:'Cercas, gallinero y campos de cultivo con calidez rural.', color:'linear-gradient(180deg, #ffdf8a, #c98b50 48%, #7b4c2b 100%)', ambient:'farm'},
+    {id:'bosque-templado', name:'Bosque templado', desc:'Arbustos, troncos y hojas otoñales con aire misterioso.', color:'linear-gradient(180deg, #b07a4f, #6b8f5d 55%, #27362f 100%)', ambient:'forest'},
+    {id:'mexicano', name:'Noche mexicana', desc:'Vegetacion local, rocas y un cielo estrellado vibrante.', color:'linear-gradient(180deg, #181334, #4a2a6f 55%, #0a0816 100%)', ambient:'mexican'},
+    {id:'desierto', name:'Desierto', desc:'Cactus, rocas y tormentas de arena ocasionales.', color:'linear-gradient(180deg, #ffca7a, #d9883c 55%, #74411d 100%)', ambient:'desert'},
+    {id:'bambu', name:'Bosque de bambu', desc:'Niebla ligera, vegetacion abundante y serenidad total.', color:'linear-gradient(180deg, #89e36d, #4aa55a 55%, #1f4e2c 100%)', ambient:'bamboo'},
+    {id:'australiano', name:'Bosque australiano', desc:'Eucaliptos, hojas flotantes y brisa suave constante.', color:'linear-gradient(180deg, #bfe4d0, #86c8a6 55%, #305543 100%)', ambient:'australia'},
+    {id:'sabana', name:'Sabana africana', desc:'Acacias, pastizales y atardeceres cinematograficos.', color:'linear-gradient(180deg, #ffcc8b, #e68d4c 50%, #4e2a1a 100%)', ambient:'savanna'}
+];
+
+const achievements = [
+    {title:'Primer Descubrimiento', desc:'Explora tu primera especie.', icon:'✨', earned:false},
+    {title:'Naturalista Curioso', desc:'Descubre 5 especies.', icon:'🔎', earned:false},
+    {title:'Coleccion Completa', desc:'Descubre las 11 especies.', icon:'🏅', earned:false},
+    {title:'Explorador Nocturno', desc:'Abre un habitat nocturno.', icon:'🌙', earned:false},
+    {title:'Amigo de la Fauna', desc:'Marca 3 favoritos.', icon:'💖', earned:false}
+];
+
+let currentAnimalIndex = 0;
+let viewMode = 'map';
+let soundEnabled = true;
+let musicEnabled = false;
+let discoveredHistory = JSON.parse(localStorage.getItem('vw_history') || '[]');
+let favorites = JSON.parse(localStorage.getItem('vw_favorites') || '[]');
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+function saveState() {
+    localStorage.setItem('vw_history', JSON.stringify(discoveredHistory));
+    localStorage.setItem('vw_favorites', JSON.stringify(favorites));
+}
+
+function notify(text) {
+    const el = document.createElement('div');
+    el.className = 'notification';
+    el.textContent = text;
+    $('#notifications-container').appendChild(el);
+    setTimeout(() => el.remove(), 2400);
+}
+
+function renderStats() {
+    const discovered = animals.filter(a => a.discovered).length;
+    $('#discovered-count').textContent = discovered;
+    $('#collection-count').textContent = discovered;
+    $('#favorites-count').textContent = favorites.length;
+    $('#achievements-count').textContent = achievements.filter(a => a.earned).length;
+}
+
+function createHabitatCard(h) {
+    const animal = animals.find(a => a.habitat === h.id);
+    const discovered = animals.filter(a => a.habitat === h.id && a.discovered).length;
+    return `<div class="habitat-card card card-glow" data-habitat="${h.id}">
+        <div class="progress-pill">${discovered}/${animals.filter(a => a.habitat === h.id).length}</div>
+        <div class="habitat-visual" style="background:${h.color}">
+            <div class="animal-art ${animal.animation}">${animal.icon}</div>
+        </div>
+        <div class="habitat-info-box">
+            <h3 class="habitat-title">${h.name}</h3>
+            <p class="small-text">${h.desc}</p>
+        </div>
+    </div>`;
+}
+
+function createAnimalCard(a) {
+    return `<div class="animal-card card card-glow" data-id="${a.id}" data-habitat="${a.habitat}" data-diet="${a.diet}">
+        <div class="progress-pill">${a.discovered ? 'Descubierto' : 'Nuevo'}</div>
+        <div class="habitat-visual" style="background:${habitats.find(h => h.id === a.habitat).color}">
+            <div class="animal-art ${a.animation}">${a.icon}</div>
+        </div>
+        <div class="animal-info-box">
+            <h3 class="animal-name">${a.common}</h3>
+            <div class="animal-meta">${a.scientific}</div>
+            <div class="animal-meta">${a.diet} · ${a.habitatName}</div>
+        </div>
+    </div>`;
+}
+
+function renderAll() {
+    $('#habitat-grid').innerHTML = habitats.map(createHabitatCard).join('');
+    $('#animals-grid').innerHTML = animals.map(createAnimalCard).join('');
+    $('#collection-grid').innerHTML = animals.map(createAnimalCard).join('');
+    $('#achievements-grid').innerHTML = achievements.map(a => `<div class="achievement-card card card-glow"><div class="achievement-info-box"><div style="font-size:2.2rem">${a.icon}</div><h3 class="animal-name">${a.title}</h3><p class="achievement-desc">${a.desc}</p></div></div>`).join('');
+    renderStats();
+    bindCards();
+    updateAchievements();
+}
+
+function bindCards() {
+    $$('.habitat-card').forEach(card => card.onclick = () => openHabitat(card.dataset.habitat));
+    $$('.animal-card').forEach(card => card.onclick = () => openAnimal(card.dataset.id));
+}
+
+function openView(view) {
+    viewMode = view;
+    $$('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(`${view}-view`).classList.add('active');
+    $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+}
+
+function openAnimal(id) {
+    const animal = animals.find(a => a.id === id);
+    currentAnimalIndex = animals.findIndex(a => a.id === id);
+    animal.discovered = true;
+    if (!discoveredHistory.includes(id)) discoveredHistory.unshift(id);
+    discoveredHistory = discoveredHistory.slice(0, 20);
+    populateAnimalModal(animal);
+    $('#animal-modal').classList.add('active');
+    renderStats(); renderAll(); saveState(); updateAchievements();
+    notify(`${animal.common} descubierto en ${animal.habitatName}`);
+}
+
+function populateAnimalModal(a) {
+    $('#modal-icon').textContent = a.icon;
+    $('#modal-common').textContent = a.common;
+    $('#modal-scientific').textContent = a.scientific;
+    $('#modal-diet').textContent = a.diet;
+    $('#modal-habitat').textContent = a.habitatName;
+    $('#modal-lifespan').textContent = a.lifespan;
+    $('#modal-weight').textContent = a.weight;
+    $('#modal-size').textContent = a.size;
+    $('#modal-status').textContent = a.status;
+    $('#modal-distribution').textContent = a.distribution;
+    $('#modal-trivia').innerHTML = a.trivia.map(t => `<li>${t}</li>`).join('');
+    $('#animation-preview').innerHTML = `<div class="animal-art ${a.animation}" style="font-size:6rem">${a.icon}</div>`;
+    const fav = favorites.includes(a.id);
+    $('#modal-favorite').innerHTML = `<span class="favorite-icon">${fav ? '★' : '☆'}</span>`;
+    $('#modal-favorite').onclick = () => toggleFavorite(a.id);
+}
+
+function toggleFavorite(id) {
+    if (favorites.includes(id)) favorites = favorites.filter(x => x !== id); else favorites.push(id);
+    saveState(); renderStats(); openAnimal(id);
+    notify(favorites.includes(id) ? 'Agregado a favoritos' : 'Eliminado de favoritos');
+}
+
+function openHabitat(id) {
+    const h = habitats.find(x => x.id === id);
+    const related = animals.filter(a => a.habitat === id);
+    document.body.classList.toggle('night', h.ambient === 'night');
+    $('#habitat-background').style.background = h.color;
+    $('#habitat-name').textContent = h.name;
+    $('#habitat-description').textContent = h.desc;
+    $('#habitat-animal-count').textContent = related.length;
+    $('#habitat-discovered').textContent = related.filter(a => a.discovered).length;
+    $('#habitat-animals-container').innerHTML = related.map(a => `<div class="animal-art ${a.animation}" style="font-size:7rem">${a.icon}</div>`).join('');
+    $('#habitat-modal').classList.add('active');
+    if (h.ambient === 'night') notify('Exploracion nocturna activada');
+}
+
+function updateAchievements() {
+    achievements[0].earned = animals.some(a => a.discovered);
+    achievements[1].earned = animals.filter(a => a.discovered).length >= 5;
+    achievements[2].earned = animals.every(a => a.discovered);
+    achievements[3].earned = ['bosque-nocturno','mexicano'].some(id => animals.some(a => a.discovered && a.habitat === id));
+    achievements[4].earned = favorites.length >= 3;
+    $('#achievements-grid').innerHTML = achievements.map(a => `<div class="achievement-card card card-glow" style="opacity:${a.earned ? 1 : 0.55}"><div class="achievement-info-box"><div style="font-size:2.2rem">${a.icon}</div><h3 class="animal-name">${a.title}</h3><p class="achievement-desc">${a.desc}</p></div></div>`).join('');
+    $('#achievements-count').textContent = achievements.filter(a => a.earned).length;
+}
+
+function filterAnimals() {
+    const q = $('#search-input').value.toLowerCase();
+    const h = $('#habitat-filter').value;
+    const d = $('#diet-filter').value;
+    $$('.animal-card').forEach(card => {
+        const a = animals.find(x => x.id === card.dataset.id);
+        const ok = a.common.toLowerCase().includes(q) && (h === 'all' || a.habitat === h) && (d === 'all' || a.diet === d);
+        card.style.display = ok ? '' : 'none';
+    });
+}
+
+function initAmbient() {
+    const particles = $('#particles-container');
+    for (let i=0; i<20; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.cssText = `left:${Math.random()*100}vw; top:${Math.random()*100}vh; width:${2+Math.random()*4}px; height:${2+Math.random()*4}px; border-radius:50%; background:rgba(124,247,212,${0.15+Math.random()*0.25}); animation: drift ${10+Math.random()*18}s linear infinite;`;
+        particles.appendChild(p);
+    }
+    const clouds = $('#clouds-container');
+    for (let i=0; i<6; i++) {
+        const c = document.createElement('div');
+        c.className = 'cloud';
+        c.style.cssText = `left:${Math.random()*110}vw; top:${8+Math.random()*28}vh; width:${120+Math.random()*180}px; height:${36+Math.random()*36}px; border-radius:999px; background:rgba(255,255,255,0.08); filter: blur(10px); animation: cloudMove ${40+Math.random()*30}s linear infinite; opacity:${0.35+Math.random()*0.35};`;
+        clouds.appendChild(c);
+    }
+    const stars = $('#stars-container');
+    for (let i=0; i<70; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.cssText = `left:${Math.random()*100}vw; top:${Math.random()*100}vh; width:${1+Math.random()*2}px; height:${1+Math.random()*2}px; border-radius:50%; background:white; opacity:${0.2+Math.random()*0.8}; animation: twinkle ${2+Math.random()*4}s ease-in-out infinite;`;
+        stars.appendChild(s);
+    }
+}
+
+function simulateSound() {
+    if (soundEnabled) notify('Sonido ambiental activado');
+}
+
+function initEvents() {
+    $$('.nav-btn').forEach(btn => btn.onclick = () => openView(btn.dataset.view));
+    $('#search-input').addEventListener('input', filterAnimals);
+    $('#habitat-filter').addEventListener('change', filterAnimals);
+    $('#diet-filter').addEventListener('change', filterAnimals);
+    $('#modal-close').onclick = () => $('#animal-modal').classList.remove('active');
+    $('#habitat-modal-close').onclick = () => $('#habitat-modal').classList.remove('active');
+    $('#animal-modal .modal-overlay').onclick = () => $('#animal-modal').classList.remove('active');
+    $('#habitat-modal .modal-overlay').onclick = () => $('#habitat-modal').classList.remove('active');
+    $('#next-animal-btn').onclick = () => openAnimal(animals[(currentAnimalIndex + 1) % animals.length].id);
+    $('#explore-habitat-btn').onclick = () => openHabitat(animals[currentAnimalIndex].habitat);
+    $('#sound-toggle').onclick = () => { soundEnabled = !soundEnabled; $('#sound-toggle .btn-icon').textContent = soundEnabled ? '🔊' : '🔇'; simulateSound(); };
+    $('#music-toggle').onclick = () => { musicEnabled = !musicEnabled; $('#music-toggle .btn-icon').textContent = musicEnabled ? '🎵' : '⏸'; notify(musicEnabled ? 'Musica ambiental activada' : 'Musica pausada'); };
+    $('#fullscreen-toggle').onclick = async () => { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); };
+}
+
+function init() {
+    initAmbient();
+    renderAll();
+    initEvents();
+    setTimeout(() => $('#loading-screen').style.display = 'none', 2000);
+    setInterval(() => {
+        document.body.classList.toggle('night', new Date().getHours() >= 19 || new Date().getHours() < 6);
+    }, 2000);
+    setTimeout(() => openAnimal('rabbit'), 2600);
+}
+
+init();
+
+</script>
+</body>
+</html>
